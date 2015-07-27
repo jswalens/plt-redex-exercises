@@ -13,10 +13,11 @@
   (test-equal (term (bv ((lambda (a) a) (lambda (b c) (lambda (d) e))))) '(a b c d)))
 
 (define-metafunction Lambda
-  bv : e -> any
+  bv : e -> (x ...)
   [(bv x) ()]
   [(bv (lambda (x ...) e)) ,(append (term (x ...)) (term (bv e)))]
-  [(bv (e ...)) ,(apply append (map (lambda (x) (term (bv ,x))) (term (e ...))))])
+  [(bv (e ...)) (x ... ...)
+                (where ((x ...) ...) ((bv e) ...))])
 
 
 (define-extended-language Env Lambda
@@ -40,7 +41,7 @@
 
 
 (define-metafunction Env
-  lookup : x env -> any
+  lookup : x env -> e or #false
   [(lookup _ ()) #false]
   [(lookup x_1 ((x_1 any_1) (x_2 any_2) ...)) any_1]
   [(lookup x_1 ((x_0 any_0) (x_2 any_2) ...)) (lookup x_1 ((x_2 any_2) ...))])
@@ -58,6 +59,20 @@
 (define-metafunction Env
   let : env e -> e
   [(let ((x e) ...) e_1) ((lambda (x ...) e_1) e ...)])
+
+(module+ test
+  (test-equal (term (fv x)) '(x))
+  (test-equal (term (fv (lambda (x) x))) '())
+  (test-equal (term (fv ((lambda (x) x) y))) '(y))
+  (test-equal (term (fv (z y))) '(z y)))
+
+(define-metafunction Env
+  fv : e -> (x ...)
+  [(fv x) (x)]
+  [(fv (lambda (x ...) e)) ,(remove* (term (x ...)) (term (fv e)))  ]
+  [(fv (e ...)) (x ... ...)
+                (where ((x ...) ...) ((fv e) ...))])
+
 
 (module+ test
   (test-results))
