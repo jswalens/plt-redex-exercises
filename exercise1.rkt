@@ -45,6 +45,19 @@
   [(lookup x_1 ((x_1 any_1) (x_2 any_2) ...)) any_1]
   [(lookup x_1 ((x_0 any_0) (x_2 any_2) ...)) (lookup x_1 ((x_2 any_2) ...))])
 
+(module+ test
+  (test-equal (term
+               (let ((x (lambda (a b c) a))
+                     (y (lambda (x) x)))
+                 (x y y y)))
+              (term
+               ((lambda (x y) (x y y y))
+                (lambda (a b c) a)
+                (lambda (x) x)))))
+
+(define-metafunction Env
+  let : env e -> e
+  [(let ((x e) ...) e_1) ((lambda (x ...) e_1) e ...)])
 
 (module+ test
   (test-results))
