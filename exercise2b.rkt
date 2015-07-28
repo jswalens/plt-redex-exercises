@@ -109,9 +109,6 @@
    (side-condition (not (member (term x) (term (x_1 ...)))))]
   [(lookup any_1 any_2) ,(error 'lookup "not found: ~e" (term x))])
 
-
-;; broken!!
-
 (define ->
   (reduction-relation
    TLambda-tc
@@ -124,8 +121,6 @@
    (--> (in-hole E (+ v_1 v_2))
         (in-hole E ,(+ (term v_1) (term v_2))) +)
    ))
-
-;;; end broken
 
 (define-metafunction TLambda-tc
   let : ((x t e) ...) e -> e
