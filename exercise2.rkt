@@ -31,6 +31,24 @@
         (in-hole C (subst ([e_1 x_1] ...) e))
         β)))
  
+(define example1 (term (lambda (x)
+                         (((lambda (a b) a)
+                           (lambda (y) 4) 7)
+                          x))))
+
+(define example2 (term (lambda (x) (a x))))
+
+(define -->βη
+  (extend-reduction-relation
+   -->β Lambda-calculus
+   (--> (in-hole C (lambda (x_1 ..._n) (e x_1 ..._n)))
+        (in-hole C e)
+        η)))
+
+(module+ test
+  (test-->> -->β #:equiv =α/racket example1 (term (lambda (y) 4)))
+  (test-->> -->βη #:equiv =α/racket example2 (term a)))
+
 
 (module+ test
   (test-results))
