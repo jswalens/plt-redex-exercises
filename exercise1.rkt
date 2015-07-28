@@ -56,9 +56,11 @@
                 (lambda (a b c) a)
                 (lambda (x) x)))))
 
+;; let is a syntactic sugar construct allowing local bindings.
 (define-metafunction Env
   let : ((x any) ...) any -> any
-  [(let ((x_lhs any_rhs) ...) any_body) ((lambda (x_lhs ...) any_body) any_rhs ...)])
+  [(let ((x_lhs any_rhs) ...) any_body)
+   ((lambda (x_lhs ...) any_body) any_rhs ...)])
 
 (module+ test
   (test-equal (term (fv x)) '(x))
