@@ -57,8 +57,8 @@
                 (lambda (x) x)))))
 
 (define-metafunction Env
-  let : env e -> e
-  [(let ((x e) ...) e_1) ((lambda (x ...) e_1) e ...)])
+  let : ((x any) ...) any -> any
+  [(let ((x_lhs any_rhs) ...) any_body) ((lambda (x_lhs ...) any_body) any_rhs ...)])
 
 (module+ test
   (test-equal (term (fv x)) '(x))
