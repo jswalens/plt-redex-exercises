@@ -8,15 +8,20 @@
   (e ::=
      n
      +
+     list
      x
      (lambda ((x_!_ t) ...) e)
      (e e ...))
   (n ::= natural)
+  (list ::=
+        (nil t)
+        (cons e e))
   (t ::=
      int
-     (t ... -> t))
+     (t ... -> t)
+     (List t))
   (x ::= variable-not-otherwise-mentioned))
- 
+
 (define lambda? (redex-match? TLambda e))
  
 (define e1
@@ -39,13 +44,15 @@
   (Γ ::= ((x t) ...))
   (v ::=
      n
+     list
      (lambda ((x t) ...) e))
   (E ::=
      hole
      (E e ...)
      (+ E e)
      (+ v E)
-     ))
+     (cons E e)
+     (cons v E)))
  
 (module+ test
   (test-equal (judgment-holds (⊢ () ,e1 (int (int -> int) -> int))) #true)
@@ -72,7 +79,14 @@
   [(⊢ Γ e_1 (t_2 ... -> t))
    (⊢ Γ e_2 t_2) ...
    ------------------------------------------------- "application"
-   (⊢ Γ (e_1 e_2 ...) t)])
+   (⊢ Γ (e_1 e_2 ...) t)]
+  
+  [----------------------- "nil"
+   (⊢ Γ (nil t) (List t))]
+  
+  [(⊢ Γ e_1 t) (⊢ Γ e_2 (List t))
+   ----------------------- "cons"
+   (⊢ Γ (cons e_1 e_2) (List t))])
 
 
 ; (extend Γ (x t) ...) add (x t) to Γ so that x is found before other x-s
@@ -107,13 +121,35 @@
         (in-hole E e) η)
    (--> (in-hole E ((lambda ((x_1 t_1) ..._n) e) e_1 ..._n))
         (in-hole E (subst ([e_1 x_1] ...) e)) β)
+   (--> (in-hole E (+ v_1 v_2))
+        (in-hole E ,(+ (term v_1) (term v_2))) +)
    ))
 
 ;;; end broken
 
+(define-metafunction TLambda-tc
+  let : ((x t e) ...) e -> e
+  [(let ((x t e) ...) e_1) ((lambda ((x t) ...) e_1) e ...)])
+
+(define example1 (term (((lambda ((x (int -> int))) x) (lambda ((x int)) x)) 1)))
+(define example2 (term (+ 1 2)))
+(define example3 (term ((lambda ((x int) (y int)) (+ x y)) 1 2)))
+(define example4 (term (+ 1 ((lambda ((x int)) x) 2))))
+(define example5 (term (let ((x int 1) (y int 2)) (+ x y))))
+(define example6 (term (cons 1 (cons 2 (nil int)))))
+
+(module+ test
+  (test-->> -> #:equiv =α/racket example1 (term 1))
+  (test-->> -> #:equiv =α/racket example2 (term 3))
+  (test-->> -> #:equiv =α/racket example3 (term 3))
+  (test-->> -> #:equiv =α/racket example4 (term 3))
+  (test-->> -> #:equiv =α/racket example5 (term 3))
+  (test-equal (judgment-holds (⊢ () ,example6 (List int))) #true)
+  (test-->> -> #:equiv =α/racket example6 example6))
+
 (traces ->
-      (term (((lambda ((x (int -> int))) x) (lambda ((x int)) x)) 1))
-      #:pred (lambda (e) (judgment-holds (⊢ () ,e int))))
+      example6
+      #:pred (lambda (e) (judgment-holds (⊢ () ,e (List int)))))
 
 
 (module+ test
