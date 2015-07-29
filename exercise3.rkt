@@ -58,17 +58,32 @@
    (--> [(in-hole E (+ n_1 n_2)) σ]
         [(in-hole E ,(+ (term n_1) (term n_2))) σ])
    (--> [(in-hole E ((lambda (x ..._n) e) v ..._n)) σ]
-        [(in-hole E e) (extend σ (x_new ...) (v ...))]
+        [(in-hole E (subst ((x_new x) ...) e)) (extend σ (x_new ...) (v ...))]
         (where (x_new ...) ,(variables-not-in (term σ) (term (x ...)))))))
 
+(module+ test
+  (define bugfix (term ((let ((x 4))
+                           (void)
+                           (let ((x 8))
+                             (void)
+                             x)) ())))
+  (test-->>∃ s->βs bugfix (redex-match? Assignments-s [8 σ]))
+  (traces s->βs bugfix)
+
+  ;; TODO testme
+  (define duplicates (term (letrec ((x 5)
+                                    (x 6))
+                             x)))
+
+  )
 
 (define-extended-language ImperativeCalculus Assignments-s
   (e ::= .... (letrec ((x v) ...) e)))
 
 (module+ test
-  (define example1 (term (letrec ((x (lambda (iets) (y iets)))
-                                  (y (lambda (z)    (+ z 41))))
-                           (x (y 4)))))
+  (define example1 (term ((letrec ((x (lambda (iets) (y iets)))
+                                   (y (lambda (z)    (+ z 41))))
+                            (x (y 4))) ())))
 
   (define example2 (term (let ((x 4)
                                (y 5))
@@ -79,12 +94,23 @@
                                   (y 5))
                            (+ x y))))
 
-  (test-equal (redex-match? ImperativeCalculus e example1) #t)
+  (test-equal (redex-match? ImperativeCalculus (e σ) example1) #t)
   (test-equal (redex-match? ImperativeCalculus e example2) #t)
-  (test-equal (redex-match? ImperativeCalculus e example3) #t)
-  )
+  (test-equal (redex-match? ImperativeCalculus e example3) #t))
+
+(define letrec-s->βs
+  (extend-reduction-relation
+   s->βs
+   ImperativeCalculus
+   (--> [(in-hole E (letrec ((x v) ...) e)) σ]
+        [(in-hole E e)
+         (extend σ (x ...) (v ...))]
+        letrec)))
 
 
+(module+ test
+  (redex-match ImperativeCalculus [e σ] example1)
+  (test-->>∃ letrec-s->βs example1 (redex-match? ImperativeCalculus [86 σ])))
 
 
 (module+ test
