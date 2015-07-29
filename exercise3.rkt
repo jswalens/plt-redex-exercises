@@ -68,7 +68,7 @@
                              (void)
                              x)) ())))
   (test-->>∃ s->βs bugfix (redex-match? Assignments-s [8 σ]))
-  (traces s->βs bugfix)
+  ;(traces s->βs bugfix)
 
   ;; TODO testme
   (define duplicates (term (letrec ((x 5)
@@ -78,7 +78,8 @@
   )
 
 (define-extended-language ImperativeCalculus Assignments-s
-  (e ::= .... (letrec ((x v) ...) e)))
+  (e ::= .... (letrec ((x v) ...) e) (begin e ...))
+  (E ::= .... (begin v ... E e ...)))
 
 (module+ test
   (define example1 (term ((letrec ((x (lambda (iets) (y iets)))
@@ -105,13 +106,34 @@
    (--> [(in-hole E (letrec ((x v) ...) e)) σ]
         [(in-hole E e)
          (extend σ (x ...) (v ...))]
-        letrec)))
+        letrec)
+   (--> [(in-hole E (begin v ... v_1)) σ]
+        [(in-hole E v_1) σ]
+        begin)))
 
 
 (module+ test
-  (redex-match ImperativeCalculus [e σ] example1)
+  ;(redex-match ImperativeCalculus [e σ] example1)
   (test-->>∃ letrec-s->βs example1 (redex-match? ImperativeCalculus [86 σ])))
 
+
+(module+ test
+  (define example4 (term
+                    ((letrec ((x (lambda () y))
+                              (y 1))
+                       (x))
+                     ())))
+  (define example5 (term
+                    ((letrec ((x (lambda () y))
+                              (y 1))
+                       (begin
+                         (set! y 2)
+                         (x)))
+                     ())))
+  (test-equal (redex-match? ImperativeCalculus (e σ) example4) #t)
+  (test-->>∃ letrec-s->βs example4 (redex-match? ImperativeCalculus [1 σ]))
+  (test-equal (redex-match? ImperativeCalculus (e σ) example5) #t)
+  (test-->>∃ letrec-s->βs example5 (redex-match? ImperativeCalculus [2 σ])))
 
 (module+ test
   (test-results))
