@@ -59,17 +59,25 @@
   (reduction-relation
    Assignments-cesk
    #:domain (e ρ σ k)
-   (--> [x σ]
-        [(in-hole E (lookup σ x)) σ]
-        CESK-lookup)
-   (--> [(in-hole E (set! x v)) σ]
-        [(in-hole E (void)) (extend σ (x) (v))])
-   (--> [(in-hole E (+ n_1 n_2)) σ]
-        [(in-hole E ,(+ (term n_1) (term n_2))) σ])
-   (--> [(in-hole E ((lambda (x ..._n) e) v ..._n)) σ]
-        [(in-hole E (subst ((x_new x) ...) e)) (extend σ (x_new ...) (v ...))]
-        (where (x_new ...) ,(variables-not-in (term σ) (term (x ...)))))))
+   (--> [x
+         ((x_1 l_1) ... (x l) (x_more l_more) ...)
+         ((l_2 c_2) ... (l (v ρ)) (l_3 c_3) ...)
+         k]
+        [v
+         ρ
+         ((l_2 c_2) ... (l (v ρ)) (l_3 c_3) ...)
+         k]
+        CESK-lookup)))
 
+(module+ test
+  (define frooglebluh (term (x ((x 0)) ((0 (42 ()))) ())))
+  (test-equal (redex-match? Assignments-cesk [e ρ σ k] frooglebluh) #t)
+
+  (test-->>∃ s->βs frooglebluh (redex-match? Assignments-cesk [42 ρ σ k])
+             ))
+
+
+                            
 
 
 
