@@ -24,8 +24,8 @@
   (reduction-relation
    Cannibals
    #:domain state
-   (--> [(person_1 ...) (boat water) (person_2 ...)]
-        [(person_1 ...) (water boat) (person_2 ...)]
+   (--> [(person_1 ...) (boat water) (person_i person_2 ...)]
+        [(person_1 ...) (water boat) (person_i person_2 ...)] ;; don't boat towards empty RHS shore
         (side-condition (not (eq? (term boat) (term ())))) ;; boat not empty!
         boat→)
    (--> [(person_1 ...) (water boat) (person_2 ...)]
@@ -42,6 +42,7 @@
    (--> [(person_1 ... person_i person_n ...)  ((         person_b ...) water) (person_2 ...)]
         [(person_1 ...          person_n ...)  ((person_i person_b ...) water) (person_2 ...)]
         (side-condition (< (length (term (person_b ...))) 2))
+        (side-condition (not (empty? (term (person_2 ...))))) ;; don't embark once everyone's accross!
         (side-condition (or (eq? 0 (missionaries (term (person_1 ... person_n ...))))
                             (>= (missionaries (term (person_1 ... person_n ...)))
                                 (cannibals    (term (person_1 ... person_n ...))))))
@@ -73,12 +74,12 @@
 
 (module+ test
 
-  ;; ;; we manage to embark one cannibal from right.
-  ;; (test-->>∃ -->boat startstate (term (() (water (cannibal))
-  ;;                                      (cannibal cannibal
-  ;;                                                missionary missionary missionary))))
+  ;; we manage to embark one cannibal from right.
+  (test-->>∃ -->boat startstate (term (() (water (cannibal))
+                                       (cannibal cannibal
+                                                 missionary missionary missionary))))
 
-  ;; ;; we manage to transfer everybody.
+  ;; we manage to transfer everybody.
   ;; (test-->>∃ -->boat startstate (term ((cannibal cannibal cannibal
   ;;                                                missionary missionary missionary
   ;;                                                (() water) ()))))
