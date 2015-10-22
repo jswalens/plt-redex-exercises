@@ -80,9 +80,9 @@
                                                  missionary missionary missionary))))
 
   ;; we manage to transfer everybody.
-  ;; (test-->>∃ -->boat startstate (term ((cannibal cannibal cannibal
-  ;;                                                missionary missionary missionary
-  ;;                                                (() water) ()))))
+  (test-->>∃ -->boat startstate (term ((cannibal cannibal cannibal
+                                                 missionary missionary missionary
+                                                 (() water) ()))))
   )
 
 
